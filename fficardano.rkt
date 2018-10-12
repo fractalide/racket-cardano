@@ -4,12 +4,56 @@
 
 (define-ffi-definer define-cardano (ffi-lib "libcardano_c"))
 
+
+;;;;;;;;;;;;
+;;; Keys ;;;
+;;;;;;;;;;;;
+
+; #define XPRV_SIZE 96
+
+; typedef struct cardano_xprv cardano_xprv;
+; typedef struct cardano_xpub cardano_xpub;
+
+(define-cpointer-type _xprv_pointer)
+(define-cpointer-type _xpub_pointer)
+
+; cardano_xpub *cardano_xprv_delete(cardano_xprv *privkey);
+(define-cardano cardano_xprv_delete (_fun _xprv_pointer -> _xpub_pointer))
+; cardano_xpub *cardano_xprv_to_xpub(cardano_xprv *privkey);
+(define-cardano cardano_xprv_to_xpub (_fun _xprv_pointer -> _xpub_pointer))
+
+; uint8_t *cardano_xprv_to_bytes(cardano_xprv *privkey);
+; Size of the list?!
+(define-cardano cardano_xprv_to_bytes (_fun _xprv_pointer -> (_list o _uint8 96)))
+
+; cardano_xprv *cardano_xprv_from_bytes(uint8_t bytes[XPRV_SIZE]);
+(define-cardano cardano_xprv_from_bytes (_fun [b : (_list i _uint8 )] -> _xprv_pointer))
+
+; cardano_xpub *cardano_xpub_delete(cardano_xpub *pubkey);
+(define-cardano cardano_xpub_delete (_fun _xpub_pointer -> _xpub_pointer))
+
+;;;;;;;;;;;;;;;;;
+;;; Addresses ;;;
+;;;;;;;;;;;;;;;;;
+
+; typedef struct cardano_address cardano_address;
+(define-cpointer-type _cardano_address)
+
+; /* check if an address is a valid protocol address.
+;  * return 0 on success, !0 on failure. */
+; int cardano_address_is_valid(const char * address_base58);
+; TODO : *char input
+; (define-cardano cardano_address_is_valid (_fun _pointer -> _int))
+
+;;;;;;;;;;;;;;
+;;; Wallet ;;;
+;;;;;;;;;;;;;;
 ; Type
 (define-cpointer-type _wallet_pointer)
+(define-cpointer-type _account_pointer)
 
 ;void cardano_wallet_delete(cardano_wallet *);
 (define-cardano cardano_wallet_delete (_fun _wallet_pointer -> _void))
-
 
 ;cardano_wallet *cardano_wallet_new(const uint8_t * const entropy_ptr, unsigned long entropy_size,
 ;                                   const char * const password_ptr, unsigned long password_size);
@@ -22,17 +66,52 @@
                                          _wallet_pointer
                                          ))
 
-
 ; cardano_account *cardano_account_create(cardano_wallet *wallet, const char *alias, unsigned int index);
-(define-cpointer-type _account_pointer)
 (define-cardano cardano_account_create (_fun _wallet_pointer _string _uint -> _account_pointer))
 
 ; void cardano_account_delete(cardano_account *account);
 (define-cardano cardano_account_delete (_fun _account_pointer -> _void))
 
 ; unsigned long cardano_account_generate_addresses(cardano_account *account, int internal, unsigned int from_index, unsigned long num_indices, char *addresses_ptr[]);
-
 (define-cardano cardano_account_generate_addresses(_fun _account_pointer _int _uint _ulong _pointer -> _ulong))
+
+;;;;;;;;;;;;;;;;;;;
+;;; Transaction ;;;
+;;;;;;;;;;;;;;;;;;;
+
+;typedef struct cardano_transaction_builder cardano_transaction_builder;
+;typedef struct cardano_transaction_finalized cardano_transaction_finalized;
+;typedef struct cardano_txoptr cardano_txoptr;
+; TODO Remove duplicate?
+;typedef struct cardano_txoutput cardano_txoutput;
+;typedef struct cardano_txoutput cardano_txoutput;
+;typedef struct cardano_transaction cardano_transaction;
+;typedef struct cardano_signed_transaction cardano_signed_transaction;
+(define-cpointer-type _transaction_builder_pointer)
+(define-cpointer-type _transaction_finalized_pointer)
+(define-cpointer-type _txoptr_pointer)
+(define-cpointer-type _txoutput_pointer)
+(define-cpointer-type _transaction_pointer)
+(define-cpointer-type _signed_transaction_pointer)
+
+;cardano_txoptr * cardano_transaction_output_ptr_new(uint8_t txid[32], uint32_t index);
+;void cardano_transaction_output_ptr_delete(cardano_txoptr *txo);
+
+;cardano_txoutput * cardano_transaction_output_new(cardano_address *c_addr, uint64_t value);
+;void cardano_transaction_output_delete(cardano_txoutput *output);
+
+;cardano_transaction_builder * cardano_transaction_builder_new(void);
+;void cardano_transaction_builder_delete(cardano_transaction_builder *tb);
+;void cardano_transaction_builder_add_output(cardano_transaction_builder *tb, cardano_txoptr *txo);
+;cardano_result cardano_transaction_builder_add_input(cardano_transaction_builder *tb, cardano_txoptr *c_txo, uint64_t value);
+;cardano_result cardano_transaction_builder_add_change_addr(cardano_transaction_builder *tb, cardano_address *change_addr);
+;uint64_t cardano_transaction_builder_fee(cardano_transaction_builder *tb);
+;cardano_transaction *cardano_transaction_builder_finalize(cardano_transaction_builder *tb);
+
+;cardano_transaction_finalized * cardano_transaction_finalized_new(cardano_transaction *c_tx);
+;cardano_result cardano_transaction_finalized_add_witness(cardano_transaction_finalized *tf, uint8_t c_xprv[96], uint32_t protocol_magic, uint8_t c_txid[32]);
+;cardano_signed_transaction *cardano_transaction_finalized_output(cardano_transaction_finalized *tf);
+
 
 (define wallet (cardano_wallet_new (list 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32)
                               "test"))
