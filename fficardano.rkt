@@ -37,13 +37,21 @@
 ;;;;;;;;;;;;;;;;;
 
 ; typedef struct cardano_address cardano_address;
-(define-cpointer-type _cardano_address)
+(define-cpointer-type _address_pointer)
 
 ; /* check if an address is a valid protocol address.
 ;  * return 0 on success, !0 on failure. */
 ; int cardano_address_is_valid(const char * address_base58);
-; TODO : *char input
+; TODO : *char input : check for a *char of a base58
 ; (define-cardano cardano_address_is_valid (_fun _pointer -> _int))
+; 
+; cardano_address *cardano_address_new_from_pubkey(cardano_xpub *publickey);
+(define-cardano cardano_address_new_from_pubkey (_fun _xpub_pointer -> _address_pointer))
+; void cardano_address_delete(cardano_address *address);
+(define-cardano cardano_address_delete (_fun _address_pointer -> _address_pointer))
+; 
+; char *cardano_address_export_base58(cardano_address *address);
+; cardano_address *cardano_address_import_base58(const char * address_bytes);
 
 ;;;;;;;;;;;;;;
 ;;; Wallet ;;;
@@ -95,22 +103,36 @@
 (define-cpointer-type _signed_transaction_pointer)
 
 ;cardano_txoptr * cardano_transaction_output_ptr_new(uint8_t txid[32], uint32_t index);
+(define-cardano cardano_transaction_output_ptr_new (_fun (_list i _uint8) _uint32 -> _txoptr_pointer))
 ;void cardano_transaction_output_ptr_delete(cardano_txoptr *txo);
+(define-cardano cardano_transaction_output_ptr_delete (_fun _txoptr_pointer -> _void))
 
 ;cardano_txoutput * cardano_transaction_output_new(cardano_address *c_addr, uint64_t value);
+(define-cardano cardano_transaction_output_new (_fun _address_pointer _uint64 -> _txoutput_pointer))
 ;void cardano_transaction_output_delete(cardano_txoutput *output);
+(define-cardano cardano_transaction_output_delete (_fun _txoutput_pointer -> _void))
 
 ;cardano_transaction_builder * cardano_transaction_builder_new(void);
+(define-cardano cardano_transaction_builder_new (_fun -> _transaction_builder_pointer))
 ;void cardano_transaction_builder_delete(cardano_transaction_builder *tb);
+(define-cardano cardano_transaction_builder_delete (_fun _transaction_builder_pointer -> _void))
 ;void cardano_transaction_builder_add_output(cardano_transaction_builder *tb, cardano_txoptr *txo);
+(define-cardano cardano_transaction_builder_add_output (_fun _transaction_builder_pointer _txoptr_pointer -> _void))
 ;cardano_result cardano_transaction_builder_add_input(cardano_transaction_builder *tb, cardano_txoptr *c_txo, uint64_t value);
+(define-cardano cardano_transaction_builder_add_input (_fun _transaction_builder_pointer _txoptr_pointer _uint64 -> _int))
 ;cardano_result cardano_transaction_builder_add_change_addr(cardano_transaction_builder *tb, cardano_address *change_addr);
+(define-cardano cardano_transaction_builder_add_change_addr (_fun _transaction_builder_pointer _address_pointer -> _int))
 ;uint64_t cardano_transaction_builder_fee(cardano_transaction_builder *tb);
+(define-cardano cardano_transaction_builder_fee (_fun _transaction_builder_pointer -> _uint64))
 ;cardano_transaction *cardano_transaction_builder_finalize(cardano_transaction_builder *tb);
+(define-cardano cardano_transaction_builder_finalize (_fun _transaction_builder_pointer -> _transaction_pointer))
 
 ;cardano_transaction_finalized * cardano_transaction_finalized_new(cardano_transaction *c_tx);
+(define-cardano cardano_transaction_finalized_new (_fun _transaction_pointer -> _transaction_finalized_pointer))
 ;cardano_result cardano_transaction_finalized_add_witness(cardano_transaction_finalized *tf, uint8_t c_xprv[96], uint32_t protocol_magic, uint8_t c_txid[32]);
+(define-cardano cardano_transaction_finalized_add_witness (_fun _transaction_finalized_pointer (_list i _uint8) _uint32 (_list i _uint8) -> _int))
 ;cardano_signed_transaction *cardano_transaction_finalized_output(cardano_transaction_finalized *tf);
+(define-cardano cardano_transaction_finalized_output (_fun _transaction_finalized_pointer -> _signed_transaction_pointer))
 
 
 (define wallet (cardano_wallet_new (list 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32)
@@ -127,3 +149,7 @@ res
 
 (cardano_account_delete account)
 (cardano_wallet_delete wallet)
+
+(define transaction (cardano_transaction_builder_new))
+(println transaction)
+(cardano_transaction_builder_delete transaction)
